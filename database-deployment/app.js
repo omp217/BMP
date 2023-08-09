@@ -41,8 +41,6 @@ mongoose.connect(dbURL, {
 
     const City = mongoose.model('City', schema);
 
-    const dataArray = [];
-
     fs.createReadStream('dataset.csv')
     .pipe(csv({ headers: false }))
     .on('data', async (row) => {
@@ -56,7 +54,6 @@ mongoose.connect(dbURL, {
             climate: row[6],
             language: row[7].split(','),
         }
-        // dataArray.push(object);
         const city = new City(object);
         await city.save();
     })
