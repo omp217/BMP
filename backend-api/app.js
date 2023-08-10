@@ -64,12 +64,16 @@ app.get('/', (req, res) => {
 
 app.get('/:country', async (req, res) => {
     let country = req.params.country;
-    if(country === 'usa') country = 'USA';
-    if(country === 'india') country = 'India';
-    if(country === 'china') country = 'China';
+    country = country.split(',').map((country) => {
+        let ret = country.trim();
+        if(ret === 'usa') ret = 'USA';
+        if(ret === 'india') ret = 'India';
+        if(ret === 'china') ret = 'China';
+        return ret;
+    });
     let result = [];
     result = cities.filter((city) => {
-        return city.country === country;
+        return country.includes(city.country);
     });
     result = _.map(result, result => _.pick(result, ['city', 'country', 'population', 'climate']));
     result = _.sortBy(result, ['population']);
