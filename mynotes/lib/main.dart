@@ -23,9 +23,26 @@ class _MyHomePageState extends State<MyHomePage> {
   bool checkbox1Value = false;
   bool checkbox2Value = false;
   bool checkbox3Value = false;
+  List<ProductCard> products = [
+    ProductCard(
+      title: 'Product 1',
+      price: 'X Rs.',
+      imageUrl:
+          'https://th.bing.com/th/id/OIP.WRHHphUndTOsyVfr-UtIDAHaDa?w=291&h=161&c=7&r=0&o=5&dpr=1.3&pid=1.7',
+    ),
+    ProductCard(
+      title: 'Product 2',
+      price: 'Y Rs.',
+      imageUrl:
+          'https://th.bing.com/th/id/OIP.WRHHphUndTOsyVfr-UtIDAHaDa?w=291&h=161&c=7&r=0&o=5&dpr=1.3&pid=1.7',
+    ),
+    // Add more Product objects here
+  ];
 
   @override
   Widget build(BuildContext context) {
+
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Demo App'),
@@ -107,19 +124,28 @@ class _MyHomePageState extends State<MyHomePage> {
                 ],
               ),
               // SizedBox(height: 10),
-              ProductCard(
-                title: 'Product 1',
-                price: 'X Rs.',
-                imageUrl:
-                    'https://th.bing.com/th/id/OIP.WRHHphUndTOsyVfr-UtIDAHaDa?w=291&h=161&c=7&r=0&o=5&dpr=1.3&pid=1.7',
-              ),
-              ProductCard(
-                title: 'Product 2',
-                price: 'Y Rs.',
-                imageUrl:
-                    'https://th.bing.com/th/id/OIP.WRHHphUndTOsyVfr-UtIDAHaDa?w=291&h=161&c=7&r=0&o=5&dpr=1.3&pid=1.7',
-              ),
+              // const ProductCard(
+              //   title: 'Product 1',
+              //   price: 'X Rs.',
+              //   imageUrl:
+              //       'https://th.bing.com/th/id/OIP.WRHHphUndTOsyVfr-UtIDAHaDa?w=291&h=161&c=7&r=0&o=5&dpr=1.3&pid=1.7',
+              // ),
+              // const ProductCard(
+              //   title: 'Product 2',
+              //   price: 'Y Rs.',
+              //   imageUrl:
+              //       'https://th.bing.com/th/id/OIP.WRHHphUndTOsyVfr-UtIDAHaDa?w=291&h=161&c=7&r=0&o=5&dpr=1.3&pid=1.7',
+              // ),
               // You can add more ProductCard widgets here
+              Column(
+                children: products.map((product) {
+                  return ProductCard(
+                    title: product.title,
+                    price: product.price,
+                    imageUrl: product.imageUrl,
+                  );
+                }).toList(),
+              ),
             ],
           ),
         ),
@@ -140,16 +166,39 @@ class ProductCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Card(
       margin: EdgeInsets.all(5.0),
-      child: Column(
-        children: [
-          Image.network(imageUrl,
-              width: MediaQuery.of(context).size.width * 0.5,
-              height: MediaQuery.of(context).size.height * 0.3),
-          ListTile(
-            title: Text(title),
-            subtitle: Text(price),
-          ),
-        ],
+      child: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: Row(
+          children: [
+            // Image on the left side
+            Image.network(
+              imageUrl,
+              width: 100, // Set your desired width for the image
+              height: 100, // Set your desired height for the image
+            ),
+            SizedBox(width: 10), // Add spacing between image and content
+            // Content on the right side
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                Text(
+                  price,
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Colors.grey,
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
