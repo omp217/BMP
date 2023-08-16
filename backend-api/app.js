@@ -6,7 +6,7 @@ const app = express();
 
 const dbURL = "mongodb+srv://sherlock:sherlocked221b@cluster0.cfth3qm.mongodb.net/bmp";
 
-const cities = [];
+const products = [];
 
 mongoose.connect(dbURL, {
     useNewUrlParser: true,
@@ -17,36 +17,45 @@ mongoose.connect(dbURL, {
     const Schema = mongoose.Schema;
 
     const schema = new Schema({
-        city: {
+        title: {
             type: String,
         },
-        country: {
+        category: {
             type: String,
         },
-        population: {
-            type: Number,
-        },
-        area: {
-            type: Number,
-        },
-        density: {
-            type: Number,
-        },
-        gdp: {
-            type: Number,
-        },
-        climate: {
+        platform: {
             type: String,
         },
-        language: {
-            type: [String],
-        }
+        price: {
+            type: Number,
+        },
+        actual_price: {
+            type: Number,
+        },
+        discount: {
+            type: Number,
+        },
+        five_star: {
+            type: Number,
+        },
+        four_star: {
+            type: Number,
+        },
+        three_star: {
+            type: Number,
+        },
+        two_star: {
+            type: Number,
+        },
+        one_star: {
+            type: Number,
+        },
     });
 
-    const City = mongoose.model('City', schema);
+    const Product = mongoose.model('Product', schema);
 
-    City.find({}).then((data) => {
-        cities.push(...data);
+    Product.find({}).then((data) => {
+        products.push(...data);
     }).catch((err) => {
         console.log(err);
     });
@@ -59,23 +68,44 @@ mongoose.connect(dbURL, {
 });
 
 app.get('/', (req, res) => {
-    res.send({cities});
+    res.json(products)
 });
 
-app.get('/:country', async (req, res) => {
-    let country = req.params.country;
-    country = country.split(',').map((country) => {
-        let ret = country.trim();
-        if(ret === 'usa') ret = 'USA';
-        if(ret === 'india') ret = 'India';
-        if(ret === 'china') ret = 'China';
-        return ret;
-    });
+app.get('/:category/:platform', async (req, res) => {
+    const categories = ['Men', 'Women'];
+    const platforms = ['Amazon', 'Flipkart', 'Snapdeal'];
+
+    let category = parseInt(req.params.category);
+    let platform = parseInt(req.params.platform);
+
     let result = [];
-    result = cities.filter((city) => {
-        return country.includes(city.country);
+
+    if(category === 0) category = 3;
+    if(platform === 0) platform = 7;
+
+    let categoryArr = [];
+    for(let i = 0; i < 2; i++) {
+        if(category & (1 << i)) categoryArr.push(categories[i]);
+    }
+
+    let platformArr = [];
+    for(let i = 0; i < 3; i++) {
+        if(platform & (1 << i)) platformArr.push(platforms[i]);
+    }
+
+    result = products.filter((product) => {
+        return categoryArr.includes(product.category) && platformArr.includes(product.platform);
     });
-    result = _.map(result, result => _.pick(result, ['city', 'country', 'population', 'climate']));
-    result = _.sortBy(result, ['population']);
-    res.send({cities: result});
+
+    result = result.map((product) => {
+        let rating = (5 * product.five_star + 4 * product.four_star + 3 * product.three_star + 2 * product.two_star + 1 * product.one_star) / (product.five_star + product.four_star + product.three_star + product.two_star + product.one_star);
+        product.rating = rating.toFixed(1);
+        return product;
+    });
+
+    result = _.map(result, result => _.pick(result, ['title', 'category', 'platform', 'price', 'discount', 'rating']));
+    
+    result = _.orderBy(result, ['discount'], ['desc']);
+
+    res.json(result);
 });
