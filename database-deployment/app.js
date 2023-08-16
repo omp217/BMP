@@ -13,55 +13,79 @@ mongoose.connect(dbURL, {
     console.log('Connected to MongoDB');
 
     const schema = new Schema({
-        city: {
+        title: {
             type: String,
         },
-        country: {
+        category: {
             type: String,
         },
-        population: {
-            type: Number,
-        },
-        area: {
-            type: Number,
-        },
-        density: {
-            type: Number,
-        },
-        gdp: {
-            type: Number,
-        },
-        climate: {
+        platform: {
             type: String,
         },
-        language: {
-            type: [String],
-        }
+        price: {
+            type: Number,
+        },
+        actual_price: {
+            type: Number,
+        },
+        discount: {
+            type: Number,
+        },
+        five_star: {
+            type: Number,
+        },
+        four_star: {
+            type: Number,
+        },
+        three_star: {
+            type: Number,
+        },
+        two_star: {
+            type: Number,
+        },
+        one_star: {
+            type: Number,
+        },
     });
 
-    const City = mongoose.model('City', schema);
+    const Product = mongoose.model('Product', schema);
+
+    let total = 0;
 
     fs.createReadStream('dataset.csv')
     .pipe(csv({ headers: false }))
     .on('data', async (row) => {
-        const object = {
-            city: row[0],
-            country: row[1],
-            population: parseInt(row[2]),
-            area: parseFloat(row[3]),
-            density: parseFloat(row[4]),
-            gdp: parseInt(row[5]),
-            climate: row[6],
-            language: row[7].split(','),
+        let hasUnavailable = false;
+        for (const key in row) {
+            if (row[key] === '' || row[key] === undefined || row[key] === null) {
+                hasUnavailable = true;
+                break;
+            }
         }
-        const city = new City(object);
-        await city.save();
+        if(!hasUnavailable) {
+            const object = {
+                title: row[0],
+                category: row[1],
+                platform: row[2],
+                price: parseFloat(row[3]),
+                actual_price: parseFloat(row[4]),
+                discount: parseFloat(row[5].substring(0, row[5].length - 1)),
+                five_star: parseInt(row[6]),
+                four_star: parseInt(row[7]),
+                three_star: parseInt(row[8]),
+                two_star: parseInt(row[9]),
+                one_star: parseInt(row[10]),
+            };
+
+            const platforms = ['Amazon', 'Flipkart', 'Snapdeal'];
+            const randomIndex = Math.floor(Math.random() * platforms.length);
+            object.platform = platforms[randomIndex];
+
+            const product = new Product(object);
+            await product.save();
+            console.log('Saved - ', ++total);
+        }
     })
-    .on('end', () => {
-        console.log('CSV file has been processed.');
-    });
 }).catch((error) => {
     console.log('Error connecting to MongoDB', error.message);
 });
-
-console.log('End of script');
