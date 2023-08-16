@@ -19,10 +19,13 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  bool toggleValue = false;
-  bool checkbox1Value = false;
-  bool checkbox2Value = false;
-  bool checkbox3Value = false;
+  bool model = false;
+  bool snapdeal = false;
+  bool Flipkart= false;
+  bool amazon = false;
+  bool men = false;
+  bool women = false;
+
   List<ProductCard> products = [
     ProductCard(
       title: 'Product 1',
@@ -48,48 +51,48 @@ class _MyHomePageState extends State<MyHomePage> {
         title: const Text('Demo App'),
       ),
       body: Padding(
-        padding: const EdgeInsets.all(20.0),
+        padding: const EdgeInsets.all(10.0),
         child: SingleChildScrollView(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const Text(
                 'Select View Model:',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
               ),
               Row(
                 children: [
                   const Text(
                     'MVVM',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                    style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
                   ),
                   Switch(
-                    value: toggleValue,
+                    value: model,
                     onChanged: (newValue) {
                       setState(() {
-                        toggleValue = newValue;
+                        model = newValue;
                       });
                     },
                   ),
                   const Text(
                     'RMMRVM',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                    style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
                   ),
                 ],
               ),
-              const SizedBox(height: 20),
-              const Text(
-                'Checkboxes:',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
+              // const SizedBox(height: 5),
+              // const Text(
+              //   'Checkboxes:',
+              //   style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              // ),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
                   Checkbox(
-                    value: checkbox1Value,
+                    value: snapdeal,
                     onChanged: (newValue) {
                       setState(() {
-                        checkbox1Value = newValue!;
+                        snapdeal = newValue!;
                       });
                     },
                   ),
@@ -98,10 +101,10 @@ class _MyHomePageState extends State<MyHomePage> {
                     style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                   ),
                   Checkbox(
-                    value: checkbox2Value,
+                    value: Flipkart,
                     onChanged: (newValue) {
                       setState(() {
-                        checkbox2Value = newValue!;
+                        Flipkart = newValue!;
                       });
                     },
                   ),
@@ -110,15 +113,44 @@ class _MyHomePageState extends State<MyHomePage> {
                     style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                   ),
                   Checkbox(
-                    value: checkbox3Value,
+                    value: amazon,
                     onChanged: (newValue) {
                       setState(() {
-                        checkbox3Value = newValue!;
+                        amazon = newValue!;
                       });
                     },
                   ),
                   const Text(
                     'Amazon',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  ),
+                ],
+              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  Checkbox(
+                    value: men,
+                    onChanged: (newValue) {
+                      setState(() {
+                        men = newValue!;
+                      });
+                    },
+                  ),
+                  const Text(
+                    'Men',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  ),
+                  Checkbox(
+                    value: women,
+                    onChanged: (newValue) {
+                      setState(() {
+                        women = newValue!;
+                      });
+                    },
+                  ),
+                  const Text(
+                    'Women',
                     style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                   ),
                 ],
