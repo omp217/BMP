@@ -51,6 +51,10 @@ class _MyHomePageState extends State<MyHomePage> {
   bool women = false;
 
   List<Product> products = [];
+  Duration? timeTaken;
+  int? bytesSent;
+  int? bytesReceived;
+  DateTime? requestTimestamp;
 
   Future<void> fetchDataR() async {
     // Construct the API URL based on the selected checkboxes
@@ -70,10 +74,14 @@ class _MyHomePageState extends State<MyHomePage> {
     if(snapdeal) requestedPat = requestedPat + 4;
 
     url = url +'/' + requestedCat.toString() + '/' + requestedPat.toString();
-    print(url);
-
+    requestTimestamp = DateTime.now();
     final response = await http.get(Uri.parse(url));
-    print(response.statusCode);
+
+    bytesSent = response.request!.contentLength;
+    bytesReceived = response.contentLength;
+    if (requestTimestamp != null) {
+      timeTaken = DateTime.now().difference(requestTimestamp!);
+    }
     if (response.statusCode == 200) {
       // Parse the JSON response and populate the products list
       final jsonData = json.decode(response.body);
@@ -86,9 +94,9 @@ class _MyHomePageState extends State<MyHomePage> {
             platform: data['platform'],
             category: data['category'],
             rating: new_rating,
-            discount: data['discount'],
+            discount: data['discount'].toDouble(),
             price: data['price'],
-            imageUrl: 'https://static.javatpoint.com/images/homeicon/splunk.png',
+            imageUrl: data['imageurl'],
           );
         }));
       });
@@ -98,10 +106,19 @@ class _MyHomePageState extends State<MyHomePage> {
 
   Future<void> fetchDataV() async {
     String url = 'http://10.200.35.151:3000/';
+
+    requestTimestamp = DateTime.now();
+    
     final response = await http.get(Uri.parse(url));
+
+    bytesSent = response.request!.contentLength;
+    bytesReceived = response.contentLength;
+    if (requestTimestamp != null) {
+      timeTaken = DateTime.now().difference(requestTimestamp!);
+    }
     if (response.statusCode == 200) {
       final jsonData = json.decode(response.body);
-      print(response.statusCode);
+
       List<dynamic> results = [];
       List<String> categoryarray = [];
       List<String> platformarray = [];
@@ -130,7 +147,6 @@ class _MyHomePageState extends State<MyHomePage> {
       }
 
     results = results.map((product) {
-      print(product['five_star']);
       double rating = (5.0 * product['five_star'] + 4.0 * product['four_star'] +
           3.0 * product['three_star'] + 2.0 * product['two_star'] +
           1.0 * product['one_star']) /
@@ -150,10 +166,10 @@ class _MyHomePageState extends State<MyHomePage> {
           return Product(
             title: data['title'],
             platform: data['platform'],
-            imageUrl: 'https://static.javatpoint.com/images/homeicon/splunk.png',
+            imageUrl: data['imageurl'] ,
             category: data['category'],
             rating: data['rating'],
-            discount: data['discount'],
+            discount: data['discount'].toDouble(),
             price: data['price'],
           );
         }));
@@ -268,7 +284,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 ],
               ),
               Row(
-                // mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children:[
               ElevatedButton(
                 onPressed: () {
@@ -279,6 +295,20 @@ class _MyHomePageState extends State<MyHomePage> {
                 style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
                 ),
               ),
+              Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    if (timeTaken != null) ...[
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          Text('Time Taken: ${timeTaken!.inMilliseconds} ms'),
+                          Text('Bytes Received: $bytesReceived'),
+                        ],
+                      ),
+                    ],
+                  ],
+                ),
                 ],
           ),
               Column(
@@ -326,35 +356,66 @@ class ProductCard extends StatelessWidget {
     return Card(
       margin: EdgeInsets.all(0.0),
       child: Padding(
-        padding: const EdgeInsets.all(0.0),
+        padding: const EdgeInsets.all(8.0), // Add some padding
         child: Row(
           children: [
             // Image on the left side
             Image.network(
               imageUrl,
-              width: 2, // Set your desired width for the image
-              height: 2, // Set your desired height for the image
+              width: 80, // Set your desired width for the image
+              height: 80, // Set your desired height for the image
             ),
-            SizedBox(width: 5), // Add spacing between image and content
+            SizedBox(width: 10), // Add spacing between image and content
             // Content on the right side
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: TextStyle(
-                    fontSize: 10,
-                    fontWeight: FontWeight.bold,
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
-                ),
-                Text(
-                  price.toString(),
-                  style: TextStyle(
-                    fontSize: 10,
-                    color: Colors.grey,
+                  SizedBox(height: 5), // Add some vertical spacing
+                  Text(
+                    'Price: \$${price.toString()}',
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.grey,
+                    ),
                   ),
-                ),
-              ],
+                  Text(
+                    'Discount: ${discount.toString()}%',
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.blue, // Or any desired color
+                    ),
+                  ),
+                  Text(
+                    'Rating: $rating',
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.orange, // Or any desired color
+                    ),
+                  ),
+                  Text(
+                    'Category: $category',
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.green, // Or any desired color
+                    ),
+                  ),
+                  Text(
+                    'Platform: $platform',
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.purple, // Or any desired color
+                    ),
+                  ),
+                ],
+              ),
             ),
           ],
         ),
