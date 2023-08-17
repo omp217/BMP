@@ -6,7 +6,6 @@ const app = express();
 
 const dbURL = "mongodb+srv://202001262:devansh2292@cluster0.pbqmu9o.mongodb.net/?retryWrites=true&w=majority";
 
-const products = [];
 
 const Schema = mongoose.Schema;
 const schema = new Schema({
@@ -47,19 +46,18 @@ const schema = new Schema({
 
 const product = mongoose.model('product', schema);
 
-
 mongoose.connect(dbURL, {
     useNewUrlParser: true,
     useUnifiedTopology: true
 }).then(() => {
     console.log('Connected to MongoDB');
+    app.listen(3000, () => {
+        console.log('Server started');
+    });
 }).catch((error) => {
-    console.error('Error connecting to MongoDB:', error);
+    return console.error('Error connecting to MongoDB:', error);
 });
 
-app.listen(3000, () => {
-    console.log('Server started');
-});
 
 app.get('/', async (req, res) => {
     try {
