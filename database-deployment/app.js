@@ -10,26 +10,6 @@ let nextPageWomen = 'https://api.pexels.com/v1/search/?page=1&per_page=50&query=
 let queueMen = [];
 let queueWomen = [];
 
-async function getRandomImage(gender) {
-    let url = gender ? nextPageMen : nextPageWomen;
-    console.log('URL Assigned : ', url);
-    let response = await fetch(url, {
-        headers: {
-            Authorization: 'sFLyghBm0tk8AvxR9JOuOMcRfmtwAM8M5BzcLqRbwci3R1PD7SU7ObAt'
-        }
-    });
-    response = await response.json();
-    gender ? nextPageMen = response.next_page : nextPageWomen = response.next_page;
-    if(response?.photos?.length === 0) {
-        gender ? nextPageMen = 'https://api.pexels.com/v1/search/?page=1&per_page=50&query=man' : nextPageWomen = 'https://api.pexels.com/v1/search/?page=1&per_page=50&query=woman';
-        await getRandomImage(gender);
-        return;
-    }
-    for(let photo of response.photos) {
-        gender ? queueMen.push(photo.url) : queueWomen.push(photo.url);
-    }
-}
-
 const Schema = mongoose.Schema;
 
 const dbURL = "mongodb+srv://sherlock:sherlocked221b@cluster0.cfth3qm.mongodb.net/bmp"
@@ -83,16 +63,10 @@ mongoose.connect(dbURL, {
 
     let total = 0;
 
-    let rows = [];
-
     fs.createReadStream('dataset.csv')
     .pipe(csv({ headers: false }))
-    .on('data', (row) => {
-        rows.push(row);
-    })
-    .on('end', async () => {
-        console.log('CSV file successfully processed');
-        for(let row of rows) {
+    .on('data', async (row) => {
+        // rows.push(row);
             let hasUnavailable = false;
             for (const key in row) {
                 if (row[key] === '' || row[key] === undefined || row[key] === null) {
@@ -119,17 +93,14 @@ mongoose.connect(dbURL, {
                 const randomIndex = Math.floor(Math.random() * platforms.length);
                 object.platform = platforms[randomIndex];
 
-                if(object.category === 'Men') {
-                    if(queueMen.length===0) {
-                        await getRandomImage(true);
-                    }
-                    object.imageurl = queueMen.shift();
+                if(object.platform === 'Amazon') {
+                    object.imageurl = 'https://www.tripfiction.com/wp-content/uploads/2016/08/1920x1080-brands-amazon-logo.jpg';
+                }
+                else if(object.platform === 'Flipkart') {
+                    object.imageurl = 'https://th.bing.com/th/id/OIP.7IEvyXaEF_1GVbV6PChPswHaHa?pid=ImgDet&rs=1';
                 }
                 else {
-                    if(queueWomen.length===0) {
-                        await getRandomImage(false);
-                    }
-                    object.imageurl = queueWomen.shift();
+                    object.imageurl = 'https://cdn.dnaindia.com/sites/default/files/styles/full/public/2017/07/31/597314-snapdeal.jpg';
                 }
                 console.log(object.category, object.imageurl)
     
@@ -137,7 +108,9 @@ mongoose.connect(dbURL, {
                 await product.save();
                 console.log('Saved - ', ++total);
             }
-        }
+    })
+    .on('end', async () => {
+        console.log('CSV file successfully processed');
     });
 }).catch((error) => {
     console.log('Error connecting to MongoDB', error.message);
