@@ -20,6 +20,11 @@ async function getRandomImage(gender) {
     });
     response = await response.json();
     gender ? nextPageMen = response.next_page : nextPageWomen = response.next_page;
+    if(response?.photos?.length === 0) {
+        gender ? nextPageMen = 'https://api.pexels.com/v1/search/?page=1&per_page=50&query=man' : nextPageWomen = 'https://api.pexels.com/v1/search/?page=1&per_page=50&query=woman';
+        await getRandomImage(gender);
+        return;
+    }
     for(let photo of response.photos) {
         gender ? queueMen.push(photo.url) : queueWomen.push(photo.url);
     }
