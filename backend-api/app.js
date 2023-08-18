@@ -50,9 +50,6 @@ mongoose.connect(dbURL, {
         one_star: {
             type: Number,
         },
-        imageurl: {
-            type: String,
-        }
     });
 
     const Product = mongoose.model('Product', schema);
@@ -106,7 +103,7 @@ app.get('/:category/:platform', async (req, res) => {
         return product;
     });
 
-    result = _.map(result, result => _.pick(result, ['title', 'category', 'platform', 'price', 'discount', 'rating', 'imageurl']));
+    result = _.map(result, result => _.pick(result, ['title', 'category', 'platform', 'price', 'discount', 'rating']));
     
     result = _.orderBy(result, ['discount'], ['desc']);
 

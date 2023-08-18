@@ -4,12 +4,6 @@ const fs = require('fs');
 const axios = require('axios');
 const https = require('https');
 
-let nextPageMen = 'https://api.pexels.com/v1/search/?page=1&per_page=50&query=men';
-let nextPageWomen = 'https://api.pexels.com/v1/search/?page=1&per_page=50&query=women';
-
-let queueMen = [];
-let queueWomen = [];
-
 const Schema = mongoose.Schema;
 
 const dbURL = "mongodb+srv://sherlock:sherlocked221b@cluster0.cfth3qm.mongodb.net/bmp"
@@ -54,9 +48,6 @@ mongoose.connect(dbURL, {
         one_star: {
             type: Number,
         },
-        imageurl: {
-            type: String,
-        }
     });
 
     const Product = mongoose.model('Product', schema);
@@ -66,7 +57,6 @@ mongoose.connect(dbURL, {
     fs.createReadStream('dataset.csv')
     .pipe(csv({ headers: false }))
     .on('data', async (row) => {
-        // rows.push(row);
             let hasUnavailable = false;
             for (const key in row) {
                 if (row[key] === '' || row[key] === undefined || row[key] === null) {
@@ -92,21 +82,14 @@ mongoose.connect(dbURL, {
                 const platforms = ['Amazon', 'Flipkart', 'Snapdeal'];
                 const randomIndex = Math.floor(Math.random() * platforms.length);
                 object.platform = platforms[randomIndex];
-
-                if(object.platform === 'Amazon') {
-                    object.imageurl = 'https://www.tripfiction.com/wp-content/uploads/2016/08/1920x1080-brands-amazon-logo.jpg';
-                }
-                else if(object.platform === 'Flipkart') {
-                    object.imageurl = 'https://th.bing.com/th/id/OIP.7IEvyXaEF_1GVbV6PChPswHaHa?pid=ImgDet&rs=1';
-                }
-                else {
-                    object.imageurl = 'https://cdn.dnaindia.com/sites/default/files/styles/full/public/2017/07/31/597314-snapdeal.jpg';
-                }
-                console.log(object.category, object.imageurl)
     
                 const product = new Product(object);
                 await product.save();
                 console.log('Saved - ', ++total);
+                // If total becomes 7000, then stop the process
+                if(total === 7000) {
+                    process.exit(0);
+                }
             }
     })
     .on('end', async () => {
