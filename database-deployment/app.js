@@ -6,7 +6,8 @@ const https = require('https');
 
 const Schema = mongoose.Schema;
 
-const dbURL = "mongodb+srv://sherlock:sherlocked221b@cluster0.cfth3qm.mongodb.net/bmp"
+const dbURL = `mongodb+srv://202001262:devansh2292@cluster0.pbqmu9o.mongodb.net/?retryWrites=true&w=majority`
+
 
 mongoose.connect(dbURL, {
     useNewUrlParser: true,
