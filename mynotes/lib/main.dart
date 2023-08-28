@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'package:connectivity/connectivity.dart';
+
 
 void main() {
   runApp(MyApp());
@@ -95,6 +97,11 @@ class _MyHomePageState extends State<MyHomePage> {
         }));
       });
     }
+  }
+
+  Future<bool> checkInternetConnectivity() async {
+    var connectivityResult = await Connectivity().checkConnectivity();
+    return connectivityResult != ConnectivityResult.none;
   }
 
   Future<void> fetchDataV() async {
@@ -221,16 +228,42 @@ void _showInfoPopup(BuildContext context) {
     });
   }
 
-  Future<void> fetchData() async {
-    setState(() {
-      isLoading = true; // Show loading indicator
-    });
-    await fetchDataR();
-    await fetchDataV();
+Future<void> fetchData() async {
+  setState(() {
+    isLoading = true; // Show loading indicator
+  });
+
+  bool isConnected = await checkInternetConnectivity();
+
+  if (!isConnected) {
     setState(() {
       isLoading = false; // Hide loading indicator
     });
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Error'),
+          content: const Text('No internet connection available.'),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text('OK'),
+            ),
+          ],
+        );
+      },
+    );
+    return;
   }
+  await fetchDataR();
+  await fetchDataV();
+  setState(() {
+    isLoading = false; // Hide loading indicator
+  });
+}
 
   @override
   Widget build(BuildContext context) {
