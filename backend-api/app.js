@@ -112,7 +112,7 @@ app.get('/:category/:platform', async (req, res) => {
     });
 
     result = _.map(result, result => _.pick(result, ['title', 'category', 'platform', 'price', 'discount', 'rating']));
-    
+  
     result = _.orderBy(result, ['price'], ['asc']);
 
     res.json(result);
