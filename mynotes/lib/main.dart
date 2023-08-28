@@ -1,23 +1,27 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import 'package:connectivity/connectivity.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
 
 
 void main() {
-  runApp(MyApp());
+  runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    return const MaterialApp(
       home: MyHomePage(),
     );
   }
 }
 
 class MyHomePage extends StatefulWidget {
+  const MyHomePage({super.key});
+
   @override
   _MyHomePageState createState() => _MyHomePageState();
 }
@@ -71,7 +75,7 @@ class _MyHomePageState extends State<MyHomePage> {
     if (flipkart) requestedPat = requestedPat + 2;
     if (snapdeal) requestedPat = requestedPat + 4;
 
-    url = url + '/' + requestedCat.toString() + '/' + requestedPat.toString();
+    url = '$url/$requestedCat/$requestedPat';
     requestTimestamp = DateTime.now();
 
     final response = await http.get(Uri.parse(url));
@@ -84,24 +88,19 @@ class _MyHomePageState extends State<MyHomePage> {
       final jsonData = json.decode(response.body);
       setState(() {
         products = List<Product>.from(jsonData.map((data) {
-          String new_rating = data['rating'].toString();
+          String newRating = data['rating'].toString();
           RMVRVM_length = jsonData.length;
           return Product(
             title: data['title'],
             platform: data['platform'],
             category: data['category'],
-            rating: new_rating,
+            rating: newRating,
             discount: data['discount'].toDouble(),
             price: data['price'],
           );
         }));
       });
     }
-  }
-
-  Future<bool> checkInternetConnectivity() async {
-    var connectivityResult = await Connectivity().checkConnectivity();
-    return connectivityResult != ConnectivityResult.none;
   }
 
   Future<void> fetchDataV() async {
@@ -233,15 +232,15 @@ Future<void> fetchData() async {
     isLoading = true; // Show loading indicator
   });
 
-  bool isConnected = await checkInternetConnectivity();
+  final connectivityResult = await (Connectivity().checkConnectivity());
 
-  if (!isConnected) {
+  if (connectivityResult == ConnectivityResult.none) {
     setState(() {
       isLoading = false; // Hide loading indicator
     });
     showDialog(
       context: context,
-      builder: (BuildContext context) {
+      builder: ( context) {
         return AlertDialog(
           title: const Text('Error'),
           content: const Text('No internet connection available.'),
