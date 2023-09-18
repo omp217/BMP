@@ -49,9 +49,6 @@ mongoose.connect(dbURL, {
         },
         one_star: {
             type: Number,
-        },
-        imageurl: {
-            type: String,
         }
     });
 
@@ -114,7 +111,7 @@ app.get('/:category/:platform', async (req, res) => {
         return product;
     });
 
-    result = _.map(result, result => _.pick(result, ['title', 'category', 'platform', 'price', 'discount', 'rating', 'imageurl']));
+    result = _.map(result, result => _.pick(result, ['title', 'category', 'platform', 'price', 'discount', 'rating']));
     
     result = _.orderBy(result, ['price'], ['asc']);
 
