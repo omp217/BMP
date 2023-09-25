@@ -81,7 +81,7 @@ app.get('/', (req, res) => {
 app.get('/app2', (req, res) => {
     let arr = [];
     for(let i=0; i<250; i++) {
-        arr.push(products[Math.floor(Math.random() * 250)]);
+        arr.push(products[i]);
     }
     console.log(arr.length);
     res.json(arr);
