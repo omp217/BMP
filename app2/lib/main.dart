@@ -9,7 +9,6 @@ void main() {
   runApp(const MyApp());
 }
 
-
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
@@ -58,7 +57,6 @@ class Product {
       'discount': discount,
     };
   }
-
 }
 
 class DatabaseHelper {
@@ -82,8 +80,7 @@ class DatabaseHelper {
     );
   }
 
-Future<void> _createDatabase(Database db, int version) async {
-    // Create your table here, using the Product data model
+  Future<void> _createDatabase(Database db, int version) async {
     await db.execute('''
       CREATE TABLE product (
         id TEXT PRIMARY KEY,
@@ -97,57 +94,47 @@ Future<void> _createDatabase(Database db, int version) async {
     ''');
   }
 
-  //create insert function
   Future<int> insert(Product product) async {
     Database db = await instance.database;
     return await db.insert('product', product.toMap());
   }
-
-
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  bool model = false;
-  bool snapdeal = false;
-  bool flipkart = false;
-  bool amazon = false;
-  bool men = false;
-  bool women = false;
-  bool isLoading = false; // New variable to track loading state
-
-
+  bool isLoading = false;
   List<Product> products = [];
-  Duration? timeTakenV;
-  int? bytesReceivedV;
-  DateTime? requestTimestamp;
-  int? MVVM_length;
 
+  void clearData() {
+    setState(() {
+      products.clear();
+    });
+    DatabaseHelper.instance.database.then((db) {
+      db.delete('product');
+    });
+  }
 
-  Future<void> fetchDataV() async {
-    String url = 'https://ecommerce-v1-api.onrender.com/';
+  Future<void> fetchData() async {
 
-    requestTimestamp = DateTime.now();
+    final Connectivity _connectivity = Connectivity();
+    final ConnectivityResult connectivityResult =
+        await _connectivity.checkConnectivity();
+    if (connectivityResult == ConnectivityResult.none) {
+      ScaffoldMessenger.of(this.context).showSnackBar(
+        const SnackBar(
+          content: Text('No Internet Connection'),
+        ),
+      );
+      return;
+    }
+    clearData();
+    String url = 'https://ecommerce-v1-api.onrender.com/app2';
     final response = await http.get(Uri.parse(url));
-
-    bytesReceivedV = response.contentLength;
-
     if (response.statusCode == 200) {
       final jsonData = json.decode(response.body);
-
       List<dynamic> results = [];
+
       results = jsonData
           .map((product) {
-            double rating = (5.0 * product['five_star'] +
-                    4.0 * product['four_star'] +
-                    3.0 * product['three_star'] +
-                    2.0 * product['two_star'] +
-                    1.0 * product['one_star']) /
-                (product['five_star'] +
-                    product['four_star'] +
-                    product['three_star'] +
-                    product['two_star'] +
-                    product['one_star']);
-            product['rating'] = rating.toStringAsFixed(1);
             return product;
           })
           .toList();
@@ -164,145 +151,36 @@ class _MyHomePageState extends State<MyHomePage> {
         );
         await DatabaseHelper.instance.insert(product);
       }
-
-      print('Data added to db');
+      setState(() {
+        isLoading = false;
+      });
     }
   }
 
+  Future<List<Product>> getProducts() async {
+    if (products.isNotEmpty) {
+      return products;
+    }
+    Database db = await DatabaseHelper.instance.database;
+    List<Map<String, dynamic>> productsFromDB = await db.query('product');
 
-void _showInfoPopup(BuildContext context) {
-  showDialog(
-    context: context,
-    builder: (BuildContext context) {
-      return AlertDialog(
-        title: const Text('Information'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min, // Adjust as needed
-          crossAxisAlignment: CrossAxisAlignment.start, // Adjust as needed
-          children: <Widget>[
-            Text('Total number of products in the database:' + MVVM_length.toString() + '.'),
-            Text('Total number of attributes in each product:' + '11' + '.'),
-            Text('Number of attribute displayed in the app:' + '6' + '.'),
-            Text('Total number of products received from MVVM model' + ' : ' + MVVM_length.toString() + '.'),
-            Text('Display Method: sorted with ascending price of the product.'),
-            // Add more rows and columns as needed
-          ],
-        ),
-        actions: <Widget>[
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
-            child: const Text('OK'),
-          ),
-        ],
+    List<Product> results = productsFromDB.map((product) {
+      return Product(
+        id: product['id'],
+        title: product['title'],
+        platform: product['platform'],
+        category: product['category'],
+        rating: product['rating'],
+        discount: product['discount'],
+        price: product['price'],
       );
-    },
-  );
-}
+    }).toList();
 
-  void clearData() {
     setState(() {
-      snapdeal = false;
-      flipkart = false;
-      amazon = false;
-      men = false;
-      women = false;
-      products.clear();
-      timeTakenV = null;
-      bytesReceivedV = null;
+      products = results;
     });
-    //clear the database
-    DatabaseHelper.instance.database.then((db) {
-      db.delete('product');
-    });
+    return results;
   }
-
-Future<void> fetchData() async {
-  setState(() {
-    isLoading = true; // Show loading indicator
-  });
-
-  final connectivityResult = await (Connectivity().checkConnectivity());
-
-  if (connectivityResult == ConnectivityResult.none) {
-    setState(() {
-      isLoading = false; // Hide loading indicator
-    });
-    showDialog(
-      context: this.context,
-      builder: ( context) {
-        return AlertDialog(
-          title: const Text('Error'),
-          content: const Text('No internet connection available.'),
-          actions: <Widget>[
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: const Text('OK'),
-            ),
-          ],
-        );
-      },
-    );
-    return;
-  }
-
-  await fetchDataV();
-  setState(() {
-    isLoading = false; // Hide loading indicator
-  });
-}
-
-//create a function to get data from database
-Future<List<Product>> getProducts() async {
-  Database db = await DatabaseHelper.instance.database;
-  List<Map<String, dynamic>> products = await db.query('product');
-      List<Product> results = [];
-      List<String> categoryarray = [];
-      List<String> platformarray = [];
-
-      //convert products to product array list
-      List<Product> productsList = products.map((product) {
-        return Product(
-          id: product['id'],
-          title: product['title'],
-          platform: product['platform'],
-          category: product['category'],
-          rating: product['rating'],
-          discount: product['discount'],
-          price: product['price'],
-        );
-      }).toList();
-
-      if (men) categoryarray.add("Men");
-      if (women) categoryarray.add("Women");
-
-      if (categoryarray.isEmpty) {
-        categoryarray.add("Men");
-        categoryarray.add("Women");
-      }
-      if (amazon) platformarray.add("Amazon");
-      if (flipkart) platformarray.add("Flipkart");
-      if (snapdeal) platformarray.add("Snapdeal");
-
-      if (platformarray.isEmpty) {
-        platformarray.add("Amazon");
-        platformarray.add("Flipkart");
-        platformarray.add("Snapdeal");
-      }
-      for (var i = 0; i < productsList.length; i++) {
-        if (categoryarray.contains(productsList[i].category) &&
-            platformarray.contains(productsList[i].platform)) {
-          results.add(productsList[i]);
-        }
-      }
-      results.sort((a, b) =>
-          (a.price as Comparable).compareTo(b.price));
-
-      return results;
-}
 
   @override
   Widget build(BuildContext context) {
@@ -316,127 +194,64 @@ Future<List<Product>> getProducts() async {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  Checkbox(
-                    value: snapdeal,
-                    onChanged: (newValue) {
-                      setState(() {
-                        snapdeal = newValue!;
-                      });
-                    },
-                  ),
-                  const Text(
-                    'Snapdeal',
-                    style:
-                        TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
-                  ),
-                  Checkbox(
-                    value: flipkart,
-                    onChanged: (newValue) {
-                      setState(() {
-                        flipkart = newValue!;
-                      });
-                    },
-                  ),
-                  const Text(
-                    'Flipkart',
-                    style:
-                        TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
-                  ),
-                  Checkbox(
-                    value: amazon,
-                    onChanged: (newValue) {
-                      setState(() {
-                        amazon = newValue!;
-                      });
-                    },
-                  ),
-                  const Text(
-                    'Amazon',
-                    style:
-                        TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
-                  ),
-                ],
-              ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  Checkbox(
-                    value: men,
-                    onChanged: (newValue) {
-                      setState(() {
-                        men = newValue!;
-                      });
-                    },
-                  ),
-                  const Text(
-                    'Men',
-                    style:
-                        TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
-                  ),
-                  Checkbox(
-                    value: women,
-                    onChanged: (newValue) {
-                      setState(() {
-                        women = newValue!;
-                      });
-                    },
-                  ),
-                  const Text(
-                    'Women',
-                    style:
-                        TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
-                  ),
-                ],
-              ),
               Column(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children:[
-                  ElevatedButton(
-                    onPressed: () {
-                      fetchData();
-                    },
-                    child: const Text(
-                      'Go',
-                      style:
-                          TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
-                    ),
-                  ),
-                  ElevatedButton(
-                    onPressed: () {
-                      _showInfoPopup(context); // Open information popup
-                    },
-                    child: const Text(
-                      'Info',
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.bold,
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      ElevatedButton(
+                        onPressed: () {
+                          getProducts();
+                        },
+                        child: const Text(
+                          'Show',
+                          style: TextStyle(
+                              fontSize: 12, fontWeight: FontWeight.bold),
+                        ),
                       ),
-                    ),
-                  ),
-                  ElevatedButton(
-                    onPressed: clearData, // Call the clearData function
-                    child: const Text(
-                      'Clear',
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.bold,
+                      ElevatedButton(
+                        onPressed: () {
+                          setState(() {
+                            isLoading = true;
+                          });
+                          fetchData();
+                        },
+                        child: const Text(
+                          'Fetch',
+                          style: TextStyle(
+                              fontSize: 12, fontWeight: FontWeight.bold),
+                        ),
                       ),
-                    ),
+                      ElevatedButton(
+                        onPressed: () {
+                          _showInfoPopup(context);
+                        },
+                        child: const Text(
+                          'Info',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                      ElevatedButton(
+                        onPressed: clearData,
+                        child: const Text(
+                          'Clear',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
-
-                  ],
-                ),
                 ],
               ),
               const Padding(
-                padding: EdgeInsets.only(top: 16.0), // Add padding on top
-                  child: Text(
+                padding: EdgeInsets.only(top: 16.0),
+                child: Text(
                   'Products',
                   style: TextStyle(
                     fontSize: 16,
@@ -444,35 +259,52 @@ Future<List<Product>> getProducts() async {
                   ),
                 ),
               ),
-              // Show loading indicator
-               isLoading ? // Show loading indicator
-                    const Center(child: CircularProgressIndicator(),)
-                :
-              Column(
-                children: [
-                  FutureBuilder<List<Product>>(
-                    future: getProducts(),
-                    builder: (context, snapshot) {
-                      if (snapshot.hasData) {
-                        return Column(
-                          children: snapshot.data!.map((product) {
-                            return ProductCard(
-                              product: product,
-                            );
-                          }).toList(),
-                        );
-                      } else if (snapshot.hasError) {
-                        return Text('${snapshot.error}');
-                      }
-                      return const Center(child: CircularProgressIndicator());
-                    },
-                  ),
-                ],
-              ),
+              isLoading
+                  ? const Center(child: CircularProgressIndicator())
+                  : Column(
+                      children: [
+                        if (products.isNotEmpty)
+                          Column(
+                            children: products.map((product) {
+                              return ProductCard(
+                                product: product,
+                              );
+                            }).toList(),
+                          ),
+                      ],
+                    ),
             ],
           ),
         ),
       ),
+    );
+  }
+
+  void _showInfoPopup(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Information'),
+          content: const Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              Text('Total number of attributes in each product:11.'),
+              Text('Number of attributes displayed in the app:6.'),
+              Text('Display Method: sorted with ascending price of the product.'),
+            ],
+          ),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text('OK'),
+            ),
+          ],
+        );
+      },
     );
   }
 }
