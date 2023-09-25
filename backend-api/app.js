@@ -78,6 +78,23 @@ app.get('/', (req, res) => {
     res.json(products)
 });
 
+app.get('/app2', (req, res) => {
+    let arr = [];
+
+    for(let i=0; i<250; i++) {
+        arr.push(products[i]);
+    }
+
+    arr = arr.map((product) => {
+        let rating = (5 * product.five_star + 4 * product.four_star + 3 * product.three_star + 2 * product.two_star + 1 * product.one_star) / (product.five_star + product.four_star + product.three_star + product.two_star + product.one_star);
+        product.rating = rating.toFixed(1);
+        return product;
+    });
+
+    arr = _.map(arr, arr => _.pick(arr, ['_id', 'title', 'category', 'platform', 'price', 'discount', 'rating']));
+    res.json(arr);
+});
+
 app.get('/:category/:platform', async (req, res) => {
     const categories = ['Men', 'Women'];
     const platforms = ['Amazon', 'Flipkart', 'Snapdeal'];
