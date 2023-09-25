@@ -78,6 +78,15 @@ app.get('/', (req, res) => {
     res.json(products)
 });
 
+app.get('/app2', (req, res) => {
+    let arr = [];
+    for(let i=0; i<250; i++) {
+        arr.push(products[Math.floor(Math.random() * 250)]);
+    }
+    console.log(arr.length);
+    res.json(arr);
+});
+
 app.get('/:category/:platform', async (req, res) => {
     const categories = ['Men', 'Women'];
     const platforms = ['Amazon', 'Flipkart', 'Snapdeal'];
