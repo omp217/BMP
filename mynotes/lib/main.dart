@@ -64,7 +64,7 @@ class _MyHomePageState extends State<MyHomePage> {
   int? RMVRVM_length;
 
   Future<void> fetchDataR() async {
-    String url = 'https://ecommerce-v1-api.onrender.com';
+    String url = 'https://nodjswebapp.azurewebsites.net/users';
     var requestedCat = 0;
     var requestedPat = 0;
 
@@ -104,7 +104,7 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   Future<void> fetchDataV() async {
-    String url = 'https://ecommerce-v1-api.onrender.com/';
+    String url = 'https://nodjswebapp.azurewebsites.net/users/';
 
     requestTimestamp = DateTime.now();
     final response = await http.get(Uri.parse(url));
